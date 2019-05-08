@@ -1,0 +1,32 @@
+language: go
+dist: xenial
+
+env:
+  - GO111MODULE=on
+
+addons:
+  apt:
+      #sources:
+      #- llvm-toolchain-trusty-6.0
+      #- ubuntu-toolchain-r-test
+    packages:
+      - python3-pip
+      - python3-setuptools
+      # virtme uses busybox for the initramfs, needs to be statically linked
+      - busybox-static
+      - qemu
+      # needed to run the tests
+      - clang-6.0
+
+before_script:
+  # virtme
+  - sudo pip3 install "https://github.com/amluto/virtme/tarball/master"
+  # kernel image
+  - wget https://github.com/newtools/ci-kernels/raw/master/linux-4.19.40.bz
+  - sudo ln -sf /usr/bin/clang-6.0 /usr/bin/clang
+
+script:
+  # gofmt doesn't report any changes
+  - test -z $(gofmt -l ./ | tee /dev/stderr)
+  # tests
+  - ./tests.sh linux-4.19.40.bz
